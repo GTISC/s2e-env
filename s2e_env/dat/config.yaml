@@ -140,7 +140,7 @@ dependencies:
 
 # S2E Git repos
 repos:
-    url: https://github.com/S2E
+    url: https://github.com/GTISC
 
     # Names of git repositories
     s2e: manifest
