@@ -169,8 +169,14 @@ def _get_os_version():
 
     return id_name, major_version
 
+def _monify_manifest_revision(s2e_branch):
+    # This is a temporary hacky solution
+    with open("./.repo/manifests/default.xml", "r") as fd:
+        content = fd.read()
+    with open("./.repo/manifests/default.xml", "w") as fd:
+        fd.write(content.replace('<default revision="master"', f'<default revision="{s2e_branch}"'))
 
-def _get_s2e_sources(env_path, manifest_branch):
+def _get_s2e_sources(env_path, manifest_branch, s2e_branch="master"):
     """
     Download the S2E manifest repository and initialize all of the S2E
     repositories with repo. All required repos are in the manifest,
@@ -193,6 +199,7 @@ def _get_s2e_sources(env_path, manifest_branch):
         logger.info('Fetching %s from %s', git_s2e_repo, git_url)
         repo.init(u=f'{git_url}/{git_s2e_repo}', b=manifest_branch,
                   _out=sys.stdout, _err=sys.stderr)
+        _monify_manifest_revision(s2e_branch)
         repo.sync(_out=sys.stdout, _err=sys.stderr)
     except ErrorReturnCode as e:
         # Clean up - remove the half-created S2E environment
@@ -298,6 +305,9 @@ class Command(BaseCommand):
                                  'this location')
         parser.add_argument('-mb', '--manifest-branch', type=str, required=False, default='master',
                             help='Specify an alternate branch for the repo manifest')
+        parser.add_argument('-sb', '--s2e-branch', type=str, required=False,
+                            default='master',
+                            help='Use this to specify another s2e branch to clone')
 
     def handle(self, *args, **options):
         env_path = os.path.realpath(options['dir'])
@@ -345,7 +355,7 @@ class Command(BaseCommand):
                     _install_dependencies()
 
                 # Get the source repositories
-                _get_s2e_sources(env_path, options['manifest_branch'])
+                _get_s2e_sources(env_path, options['manifest_branch'], options['s2e_branch'])
 
                 # Remind the user that they must build S2E
                 msg = f'{msg}. Then run ``s2e build`` to build S2E'
