@@ -1,5 +1,4 @@
 """
-Copyright (c) 2017 Cyberhaven
 Copyright (c) 2017 Dependable Systems Laboratory, EPFL
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,11 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import distro
 
-from .abstract_project import AbstractProject
-from .cgc_project import CGCProject
-from .linux_project import LinuxProject
-from .target import Target
-from .windows_project import WindowsExeProject, WindowsDLLProject, \
-        WindowsDriverProject
-from .bios_project import BIOSProject
+def get_os_version():
+    id_name, version, _ = distro.linux_distribution(full_distribution_name=False)
+    id_name = id_name.lower()
+
+    major_version = int(version.split('.')[0])
+
+    return id_name, major_version

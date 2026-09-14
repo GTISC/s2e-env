@@ -40,10 +40,12 @@ dependencies:
         - python3
         - python3-dev
         - python3-pip
+        - python3-tomli
         - unzip
         - autoconf
         - libtool
         - automake
+        - ninja-build
 
         # Image build dependencies
         - libguestfs-tools
@@ -81,62 +83,71 @@ dependencies:
         - libglib2.0-dev
         - libglib2.0-dev:i386
         - libglib2.0-0:i386
-        - qemu
         - mingw-w64
         - gcc-multilib
         - g++-multilib
         - libpixman-1-dev
-        - libtinfo5
         - libpng-dev
+        - libzstd-dev
+        - libgmock-dev
+        - libgtest-dev
+        - libsoci-dev
+        - libcapstone-dev
+        - libcurl4-openssl-dev
+
+        # QEMU dependencies
+        - libslirp-dev
 
         # s2e-env dependencies
         - lcov
         - jq
 
-    common-ubuntu:
-        # Testing dependencies
-        - wine-stable
+        # llvm/clang dependencies for KLEE
+        - libedit-dev
+        - libpfm4-dev
+        - llvm-19-dev
+
+        - clang-19
+        - clang-format-19
 
     common-debian:
-        - fuse
         - wine
         - wine32
         - wine64
         - python3-docutils
 
-    ubuntu-18:
-        - fuse
-        - python-docutils
-        - libsdl-dev
-        - lib32ncurses5
-        - lib32ncurses5-dev
-        - libncurses5-dev
-        - libncurses5-dev:i386
-        - libx32ncurses5-dev
+    debian-12:
+        - libtinfo5
+        - fuse3
+        - qemu-system-x86
 
-        - python-distro
+    debian-13:
+        - libtinfo6
+        - fuse3
+        - qemu-system-x86
 
-        # Image build dependencies
-        - pxz
-
-    ubuntu-20:
-        - fuse
-        - python-docutils
-        - libsdl-dev
-        - lib32ncurses-dev
-        - lib32ncurses6
-        - libncurses5-dev
-        - libncurses5-dev:i386
-
-        # Ubuntu 20.04 doesn't have pxz package (at least not on the release date),
-        # so we install it manually
-        - http://mirrors.kernel.org/ubuntu/pool/universe/p/pxz/pxz_4.999.99~beta5+gitfcfea93-2_amd64.deb
-
-    ubuntu-22:
+    common-ubuntu:
+        - libtinfo6
+        - qemu-system-x86
         - fuse3
         - python3-docutils
         - libsdl1.2-dev
 
+    ubuntu-24:
+        - wine-stable
+        - libpolly-14-dev
+
+    ubuntu-26:
+        - libpolly-dev
+        - wine
+        - wine32
+        - wine64
+
+
+# Which compiler to use for building S2E and its dependencies.
+# QEMU LLVM bitcode code is always built with clang-19.
+clang_versions:
+    default: 19
 
 # S2E Git repos
 repos:
@@ -152,11 +163,11 @@ repos:
 
 required_versions:
     ubuntu_major_ver:
-        - 18
-        - 20
-        - 22
+        - 24
+        - 26
     debian_major_ver:
-        - 11
+        - 12
+        - 13
     # images.json must have this version
     guest_images: 3
 

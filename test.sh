@@ -30,13 +30,13 @@ SRC_DIR=${SRC_DIR:-.}
 
 python3 -m venv venv-test
 . venv-test/bin/activate
-pip install --upgrade pip
+pip install --upgrade pip wheel
 
 pip install "$SRC_DIR"
 pip install pylint pytest-cov mock
 
 echo Running pylint...
-pylint -rn --rcfile=${SRC_DIR}/pylint_rc ${SRC_DIR}/s2e_env
+pylint --prefer-stubs=yes -rn --rcfile=${SRC_DIR}/pylint_rc ${SRC_DIR}/s2e_env
 
 echo Running tests...
 export TERM=linux

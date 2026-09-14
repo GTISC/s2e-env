@@ -101,7 +101,7 @@ def _compute_dependencies():
     return all_install_packages
 
 
-def _install_dependencies():
+def install_dependencies():
     """
     Install S2E's dependencies.
 
@@ -122,7 +122,7 @@ def _install_dependencies():
             install_packages.append(package)
 
     install_opts = ['--no-install-recommends']
-    env = {}
+    env = os.environ.copy()
 
     env['DEBIAN_FRONTEND'] = 'noninteractive'
     install_opts = ['-y'] + install_opts
@@ -292,7 +292,8 @@ class Command(BaseCommand):
         parser.add_argument('dir', nargs='?', default=os.getcwd(),
                             help='The environment directory. Defaults to the '
                                  'current working directory')
-        parser.add_argument('-s', '--skip-dependencies', action='store_true',
+        parser.add_argument('--install-dependencies', action='store_true',
+                            required=False, default=True,
                             help='Skip the dependency install via apt')
         parser.add_argument('-b', '--use-existing-install', required=False,
                             default=None,
@@ -351,8 +352,8 @@ class Command(BaseCommand):
                 _link_existing_install(env_path, existing_install_path)
             else:
                 # Install S2E's dependencies via apt-get
-                if not options['skip_dependencies']:
-                    _install_dependencies()
+                if options['install_dependencies']:
+                    install_dependencies()
 
                 # Get the source repositories
                 _get_s2e_sources(env_path, options['manifest_branch'], options['s2e_branch'])

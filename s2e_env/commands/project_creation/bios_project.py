@@ -1,5 +1,5 @@
 """
-Copyright (c) 2017 Cyberhaven
+Copyright (c) 2023 Vitaly Chipounov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+
 import logging
 
-from .collector_threads import CollectorThreads
+from s2e_env.command import CommandError
 
-logger = logging.getLogger(__name__)
+from .base_project import BaseProject
 
 
-class WebServiceInterfacePlugin:
-    coverage = None
-    stats = None
-    crash_count = 0
-    pov1_count = 0
-    pov2_count = 0
+logger = logging.getLogger('new_project')
 
-    @staticmethod
-    def handle_stats(analysis, data):
-        CollectorThreads.stats.queue_stats(analysis, data)
 
-    @staticmethod
-    def process(data, analysis):
-        data_type = data.get('type', None)
+class BIOSProject(BaseProject):
+    supported_tools = []
+    image = {
+        "image_group": "bios",
+        "memory": "4M",
+        "name": "bios",
+        "os": None,
+        "qemu_build": "x86_64",
+        "qemu_extra_flags": "-net none -net nic,model=e1000 ",
+        "snapshot": None,
+        "version": 3
+    }
 
-        if data_type == 'stats':
-            WebServiceInterfacePlugin.handle_stats(analysis, data)
+    def __init__(self):
+        super().__init__(None, 's2e-config.bios.lua', BIOSProject.image)
+
+    def _is_valid_image(self, target, os_desc):
+        # Any image is ok for BIOS, they will just be ignored.
+        return True
+
+    def _finalize_config(self, config):
+        config['project_type'] = 'bios'
+
+        args = config.get('target').args.raw_args
+        if args:
+            raise CommandError('Command line arguments for BIOS binaries '
+                               'not supported')
+
+        config['bios'] = config['target'].path

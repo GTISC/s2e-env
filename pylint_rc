@@ -9,14 +9,15 @@
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=CVS,TraceEntries_pb2.py
+ignore=CVS
+ignore-patterns=.*_pb2\.py
 
 # Pickle collected data for later comparisons.
 persistent=yes
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
-load-plugins=pylint.extensions.comparetozero,pylint.extensions.emptystring,pylint.extensions.no_self_use
+load-plugins=pylint.extensions.no_self_use
 
 [MESSAGES CONTROL]
 
@@ -34,7 +35,7 @@ load-plugins=pylint.extensions.comparetozero,pylint.extensions.emptystring,pylin
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=broad-exception-raised,invalid-name,broad-except,too-few-public-methods,missing-docstring,global-statement,suppressed-message,locally-disabled
+disable=broad-exception-raised,invalid-name,broad-except,too-few-public-methods,missing-docstring,global-statement,suppressed-message,locally-disabled,too-many-positional-arguments
 
 
 [REPORTS]
@@ -247,4 +248,4 @@ max-public-methods=20
 
 # Exceptions that will emit a warning when being caught. Defaults to
 # "Exception"
-overgeneral-exceptions=Exception
+overgeneral-exceptions=builtins.Exception
