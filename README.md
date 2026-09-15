@@ -133,6 +133,28 @@ Other useful commands:
 * To download the latest changes from the git repositories, run `s2e update`.
 * Projects can be shared using `s2e export_project` and `s2e import_project`.
 
+## Single-pass behavior-analysis export
+
+```sh
+s2e execution_trace --analysis-module sample.exe -p 0 -p 1 project
+```
+
+This opt-in mode decodes the binary trace once and writes
+`execution_trace-<state>.json` block lists, the latest state-local
+`test_case-<state>.json`, and `execution_analysis.json` as a completion manifest.
+Omit `-p` to export all states. Module matching uses an exact, case-insensitive
+basename. Child paths inherit only their fork prefix, not the parent's later
+execution or testcase. Empty symbolic-input sets are encoded as `items: []`.
+
+Malformed/truncated records fail this mode rather than silently certifying a
+partial trace. A missing testcase is marked in the manifest; callers must
+decide whether partial evidence is acceptable. The manifest is removed before
+decoding and published only after all requested exports complete.
+
+This mode does not produce the full raw `execution_trace.json`. Use ordinary
+`s2e execution_trace project` for the legacy raw tree. Do not decode into the
+same project concurrently with another run or decoder.
+
 ## Environment structure
 
 `s2e init` generates the following directory structure in your S2E environment.

@@ -126,14 +126,26 @@ class Command(ProjectCommand):
         parser.add_argument('-pp', '--pretty-print', action='store_true',
                             dest='pretty_print',
                             help='Pretty print the generated json')
+        parser.add_argument('--analysis-module',
+                            help='Export block traces and testcases for all requested states in one decode')
 
     def handle(self, *args, **options):
         # Parse the ExecutionTracer.dat file(s) and generate an execution tree
         # for the given path IDs
         results_dir = self.project_path('s2e-last')
-        execution_tree = parse_execution_tree(results_dir, path_ids=options['path_ids'])
+        analysis_module = options.get('analysis_module')
+        if analysis_module:
+            from pathlib import Path
+            (Path(results_dir) / 'execution_analysis.json').unlink(missing_ok=True)
+        execution_tree = parse_execution_tree(results_dir, path_ids=options['path_ids'], strict=bool(analysis_module))
         if not execution_tree:
             raise CommandError('The execution trace is empty')
+
+        if analysis_module:
+            from s2e_env.execution_trace.analysis import export_analysis
+            manifest = export_analysis(execution_tree, results_dir, analysis_module, options['path_ids'])
+            logger.success('Single-pass analysis exported %d states', len(manifest['states']))
+            return
 
         # Convert the tree into a JSON representation
         state = AnalyzerState()
