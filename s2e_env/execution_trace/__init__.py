@@ -226,13 +226,26 @@ class ExecutionTraceParser:
 
     @staticmethod
     def _read_trace_entry(trace_file):
-        magic, raw_header_size = _HEADER_PREFIX.unpack(trace_file.read(8))
+        prefix = trace_file.read(8)
+        if not prefix:
+            raise EOFError
+        if len(prefix) != 8:
+            raise ValueError('Truncated trace entry prefix')
+        magic, raw_header_size = _HEADER_PREFIX.unpack(prefix)
         if magic != 0xdeaddead:
             raise Exception(f'Invalid magic in trace file (0x{magic:x})')
 
-        raw_header = trace_file.read(raw_header_size)
-        raw_item_size = _INTEGER.unpack(trace_file.read(4))[0]
-        raw_item = trace_file.read(raw_item_size)
+        def read_exact(size, label):
+            if size > 64 * 1024 * 1024:
+                raise ValueError(f'Oversized trace {label}: {size}')
+            value = trace_file.read(size)
+            if len(value) != size:
+                raise ValueError(f'Truncated trace {label}')
+            return value
+
+        raw_header = read_exact(raw_header_size, 'header')
+        raw_item_size = _INTEGER.unpack(read_exact(4, 'item size'))[0]
+        raw_item = read_exact(raw_item_size, 'item')
 
         header = TraceEntries_pb2.PbTraceItemHeader()
         header.ParseFromString(raw_header)
@@ -244,7 +257,7 @@ class ExecutionTraceParser:
         if hdr_type not in _TRACE_ENTRY_MAP:
             # If an unknown item type is found, just skip it
             logger.warning('Found unknown trace item `%s`', hdr_type)
-            return None
+            return header, None
 
         item = _TRACE_ENTRY_MAP[hdr_type]()
         item.ParseFromString(raw_item)
