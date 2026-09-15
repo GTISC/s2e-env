@@ -27,6 +27,7 @@ import shutil
 import stat
 import sys
 import urllib
+import xml.etree.ElementTree as ET
 
 import distro
 import requests
@@ -169,12 +170,25 @@ def _get_os_version():
 
     return id_name, major_version
 
-def _monify_manifest_revision(s2e_branch):
-    # This is a temporary hacky solution
-    with open("./.repo/manifests/default.xml", "r") as fd:
-        content = fd.read()
-    with open("./.repo/manifests/default.xml", "w") as fd:
-        fd.write(content.replace('<default revision="master"', f'<default revision="{s2e_branch}"'))
+def _configure_s2e_revision(source_path, s2e_branch):
+    """Configure the requested revision for only the S2E repository."""
+    override_dir = os.path.join(source_path, '.repo', 'local_manifests')
+    override_path = os.path.join(override_dir, 's2e-branch.xml')
+
+    if s2e_branch == 'master':
+        if os.path.exists(override_path):
+            os.unlink(override_path)
+        return
+
+    os.makedirs(override_dir, exist_ok=True)
+    manifest = ET.Element('manifest')
+    ET.SubElement(manifest, 'extend-project', {
+        'name': 's2e',
+        'revision': s2e_branch,
+    })
+    ET.ElementTree(manifest).write(override_path, encoding='utf-8',
+                                   xml_declaration=True)
+
 
 def _get_s2e_sources(env_path, manifest_branch, s2e_branch="master"):
     """
@@ -199,7 +213,7 @@ def _get_s2e_sources(env_path, manifest_branch, s2e_branch="master"):
         logger.info('Fetching %s from %s', git_s2e_repo, git_url)
         repo.init(u=f'{git_url}/{git_s2e_repo}', b=manifest_branch,
                   _out=sys.stdout, _err=sys.stderr)
-        _monify_manifest_revision(s2e_branch)
+        _configure_s2e_revision(source_path, s2e_branch)
         repo.sync(_out=sys.stdout, _err=sys.stderr)
     except ErrorReturnCode as e:
         # Clean up - remove the half-created S2E environment
